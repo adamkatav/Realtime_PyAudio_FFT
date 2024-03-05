@@ -15,6 +15,8 @@ def parse_args():
                         help='float ratio of the visualizer window. e.g. 24/9')
     parser.add_argument('--sleep_between_frames', dest='sleep_between_frames', action='store_true',
                         help='when true process sleeps between frames to reduce CPU usage (recommended for low update rates)')
+    parser.add_argument('--visualize', type=int, default=1, dest='visualize',
+                        help='Visualize fft 1 or 0')
     return parser.parse_args()
 
 def convert_window_ratio(window_ratio):
@@ -38,7 +40,7 @@ def run_FFT_analyzer():
                     updates_per_second  = 1000,  # How often to read the audio stream for new data
                     smoothing_length_ms = 50,    # Apply some temporal smoothing to reduce noisy features
                     n_frequency_bins = args.frequency_bins, # The FFT features are grouped in bins
-                    visualize = 1,               # Visualize the FFT features with PyGame
+                    visualize = args.visualize,               # Visualize the FFT features with PyGame
                     verbose   = args.verbose,    # Print running statistics (latency, fps, ...)
                     height    = args.height,     # Height, in pixels, of the visualizer window,
                     window_ratio = window_ratio  # Float ratio of the visualizer window. e.g. 24/9

@@ -1,6 +1,15 @@
 import argparse
 from src.stream_analyzer import Stream_Analyzer
 import time
+import numpy as np
+from collections import deque
+
+def detect_beat_in_interval(fftx: np.ndarray, fft: np.ndarray) -> bool:
+    raise NotImplementedError()
+
+def calc_energy(fftx: np.ndarray, fft: np.ndarray, bass_max_hz:int=400) -> float:
+    bass_freqs = fftx<bass_max_hz
+    return sum(fft[bass_freqs])/sum(bass_freqs)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -48,12 +57,27 @@ def run_FFT_analyzer():
 
     fps = 60  #How often to update the FFT features + display
     last_update = time.time()
+    NUMBER_OF_FRAMES = 20 # One second (?) for best detection try maybe 6
+    BEAT_COEFF = 1.5
+    history = deque([], maxlen=NUMBER_OF_FRAMES)
     while True:
         if (time.time() - last_update) > (1./fps):
             last_update = time.time()
             raw_fftx, raw_fft, binned_fftx, binned_fft = ear.get_audio_features()
+            energy = calc_energy(fftx=binned_fftx, fft=binned_fft, bass_max_hz=300)
+            history.appendleft(energy)
+            if len(history) == NUMBER_OF_FRAMES:
+                hist_as_array = np.array(history)
+                mean_energy = hist_as_array.mean()
+                is_beat = energy > BEAT_COEFF*mean_energy
+                if is_beat:
+                    # print(f'Beat detected!\t{energy=}\t{mean_energy=}')
+                    print("BEAT")
+                else:
+                    print("NO")
         elif args.sleep_between_frames:
             time.sleep(((1./fps)-(time.time()-last_update)) * 0.99)
+        
 
 if __name__ == '__main__':
     run_FFT_analyzer()
